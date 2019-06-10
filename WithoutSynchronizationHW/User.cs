@@ -14,10 +14,8 @@ namespace WithoutSynchronizationHW
 
         public void BankAccountChange(double changeInUsd)
         {
-            //lock (lockObject)
-            //{
-              BankAccountInUsd.Column += changeInUsd;
-            //}
+            BankAccountInUsd.Column += changeInUsd;
+
         }
     }
 }

@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace WithoutSynchronizationHW
 {
@@ -13,45 +9,43 @@ namespace WithoutSynchronizationHW
         {
             User user = new User
             {
-                FullName = "IlanMask",
+                FullName = "Ванёк",
                 BankAccountInUsd = new Money
                 {
                     Сurrency = "USD",
                     Column = 10000
                 }
-            }; 
+            };
 
+            object lockObject = new object();
             var threads = new Thread[20];
+            int randomNumber;
 
-            for(int i = 0; i < threads.Length; i++)
+            for (int i = 0; i < threads.Length; i++)
             {
-                threads[i] = new Thread(new ParameterizedThreadStart(ChangeMoneyRandomly));
+                var thread = new Thread(nullArgument =>
+                {
+                    lock (lockObject)
+                    {
+                        Console.WriteLine($"Поток {Thread.CurrentThread.ManagedThreadId} начал работу(текущее значение: {(user as User).BankAccountInUsd.Column})\n");
+                        Thread.Sleep(5 * new Random().Next(500));
+                        randomNumber = /*new Random().Next(1000) - 500;*/-100; //временно для сравнени конечного результата
+                        user.BankAccountInUsd.Column += randomNumber;
+                        Console.WriteLine($"Поток {Thread.CurrentThread.ManagedThreadId}(изменения {randomNumber})\n");
+                        Console.WriteLine($"Поток {Thread.CurrentThread.ManagedThreadId} конечный результат: {(user as User).BankAccountInUsd.Column}\n");
+                }
+                });
+            threads[i] = thread;
             }
 
-            foreach (Thread thread in threads)
+            foreach (var thread in threads)
             {
-                Thread.Sleep(200);
-                thread.Start(user);
+                thread.Start();
             }
 
             Console.ReadLine();
-        }
-
-        static private void ChangeMoneyRandomly(object user)
-        {
-            var currentThread = Thread.CurrentThread;
-            //Thread.Sleep(300);
-            Console.WriteLine($"Поток {currentThread.ManagedThreadId} начал работу ");
-
-            var userAccount = user as User;
-            //int position;
-            //if (new Random().Next(1) == 1) position = 1;
-            //else position = -1;
-            userAccount.BankAccountChange(/*position * */ -100);
-
-            Console.WriteLine($"Поток {currentThread.ManagedThreadId} -----Текущий счет аккаунта {userAccount.BankAccountInUsd.Column} ");
-
-            Console.WriteLine($"Поток {currentThread.ManagedThreadId} звкончил работу" );
+            Console.WriteLine($"{user.FullName} получил увидомление о счете его банковского аккаунта со счётом: {user.BankAccountInUsd.Column}");
+            Console.ReadLine();
         }
     }
 }
